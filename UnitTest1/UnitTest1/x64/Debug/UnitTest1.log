@@ -1,0 +1,6 @@
+﻿  path_.cpp
+c:\users\me\source\repos\unittest1\unittest1\path_.cpp(143): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\me\source\repos\unittest1\unittest1\path_.cpp(149): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  unittest1.cpp
+  Generating Code...
+  UnitTest1.vcxproj -> C:\Users\me\source\repos\UnitTest1\x64\Debug\UnitTest1.dll
