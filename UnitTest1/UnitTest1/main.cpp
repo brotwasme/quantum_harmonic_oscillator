@@ -6,4 +6,5 @@ using namespace std;
 int main()
 {
 	//path_ first();
+	return 0;
 }

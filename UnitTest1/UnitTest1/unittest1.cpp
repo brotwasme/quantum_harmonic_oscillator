@@ -14,19 +14,19 @@ namespace UnitTest1
 			path_ first;
 			_beginging = first.thermolise();
 			_len = first.size();
-			_probs = first.probs();
-			_probs2 = first.probs2(); //with vectors
 			_len_probs = first.len(_probs);
-			_mean = first.mean();
+			_mean = first.calc_mean();
+			_mean2 = first.calc_mean2();
 			_rnd1 = first.rnd();
 			_rnd2 = first.rnd();
 			_rnd3 = first.rnd();
-			_x = first.x_calc(1, 1);
-			_s = first.s_calc(0, 0, 0);
+			_x = first.calc_x();
+			_s = first.calc_delta_s();
+			_ds = first.calc_delta_s();
 			//_order = first.order();
 
 		}
-		TEST_METHOD(Test_order)
+		TEST_METHOD(Test_)
 		{
 			// TODO: Your test code here
 			//printf("int %d", _index);
@@ -41,40 +41,12 @@ namespace UnitTest1
 				_rnd1 != _rnd3 ||
 				_rnd2 != _rnd3);
 		}
-		TEST_METHOD(Test_probs)
-		{
-			//int i = 1;
-			//Assert::AreEqual(1, _len_probs);
-			//Assert::AreEqual((float)1, _probs[0]);
-			//bool check = _probs[i] >= 0 && _probs[i] <= 1;
-			//Assert::IsTrue(check);
-			//Assert::AreEqual((float)1, _probs[i]);
-			//Assert::IsTrue(_probs[1] >= 0 && _probs[1] <= 1);
-			//Assert::IsTrue(_probs[2] >= 0 && _probs[2] <= 1);
-			//Assert::IsTrue(_probs[0] != _probs[1] ||
-			//	_probs[0] != _probs[2] ||
-			//	_probs[1] != _probs[2]);
-		}
 
-		TEST_METHOD(Test_probs2)
-		{
-			//int i = 1;
-			//Assert::AreEqual(1, _len_probs2);
-			Assert::AreEqual((float)1, (float) _probs2.size());
-			//bool check = _probs[i] >= 0 && _probs[i] <= 1;
-			//Assert::IsTrue(check);
-			//Assert::AreEqual((float)1, _probs[i]);
-			//Assert::IsTrue(_probs[1] >= 0 && _probs[1] <= 1);
-			//Assert::IsTrue(_probs[2] >= 0 && _probs[2] <= 1);
-			//Assert::IsTrue(_probs[0] != _probs[1] ||
-			//	_probs[0] != _probs[2] ||
-			//	_probs[1] != _probs[2]);
-		}
 		TEST_METHOD(Test_thermolise)
 		{
 			int num = 1;
 			int test_tot = 0;
-			for (int i = 0; i == _len; i++)
+			for (int i = 0; i < _len; i++)
 			{
 				num = 1;
 				if (_beginging[i] == 0) {
@@ -86,7 +58,12 @@ namespace UnitTest1
 		}
 		TEST_METHOD(Test_mean)
 		{
-			Assert::AreEqual(_mean, (float) 0);
+			Assert::AreEqual(_mean, (float)0);
+		}
+
+		TEST_METHOD(Test_mean2)
+		{
+			Assert::AreEqual(_mean2, (float)0);
 		}
 
 		TEST_METHOD(Test_x_calc)
@@ -99,18 +76,24 @@ namespace UnitTest1
 			Assert::AreEqual((float)0, _s);
 		}
 
+		TEST_METHOD(Test_delta_s_calc)
+		{
+			Assert::AreEqual((float)0, _ds);
+		}
+
 	private:
 		int* _order;
 		int _len;
 		float* _beginging;
 		float* _probs;
 		float _mean;
+		float _mean2;
 		float _rnd1;
 		float _rnd2;
 		float _rnd3;
 		float _x;
 		float _s;
+		float _ds;
 		int _len_probs;
-		std::vector<float> _probs2;
 	};
 }
