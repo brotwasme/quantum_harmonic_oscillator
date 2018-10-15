@@ -1,0 +1,5 @@
+﻿  test1.cpp
+     Creating library C:\Users\John\source\repos\UnitTestqmo\Debug\test.lib and object C:\Users\John\source\repos\UnitTestqmo\Debug\test.exp
+test1.obj : error LNK2019: unresolved external symbol "public: __thiscall calculator::calculator(void)" (??0calculator@@QAE@XZ) referenced in function "public: static void __stdcall test::UnitTest1::test_qmo(void)" (?test_qmo@UnitTest1@test@@SGXXZ)
+test1.obj : error LNK2019: unresolved external symbol "public: __thiscall calculator::~calculator(void)" (??1calculator@@QAE@XZ) referenced in function "public: static void __stdcall test::UnitTest1::test_qmo(void)" (?test_qmo@UnitTest1@test@@SGXXZ)
+C:\Users\John\source\repos\UnitTestqmo\Debug\test.dll : fatal error LNK1120: 2 unresolved externals

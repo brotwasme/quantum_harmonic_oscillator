@@ -12,7 +12,7 @@ namespace UnitTest1
 		TEST_METHOD_INITIALIZE(methodName)
 		{
 			path_ first;
-			_beginging = first.thermolise();
+			first.thermolise();
 			_len = first.size();
 			_len_probs = first.len(_probs);
 			_mean = first.calc_mean();

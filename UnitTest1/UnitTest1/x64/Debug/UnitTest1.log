@@ -1,7 +1,4 @@
-﻿  main.cpp
-  path_.cpp
-c:\users\john\documents\github\quantum_harmonic_oscillator\unittest1\unittest1\path_.cpp(60): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-c:\users\john\documents\github\quantum_harmonic_oscillator\unittest1\unittest1\path_.cpp(79): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-  unittest1.cpp
-  Generating Code...
+﻿  path_.cpp
+c:\users\john\documents\github\quantum_harmonic_oscillator\unittest1\unittest1\path_.cpp(61): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\john\documents\github\quantum_harmonic_oscillator\unittest1\unittest1\path_.cpp(80): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   UnitTest1.vcxproj -> C:\Users\John\Documents\GitHub\quantum_harmonic_oscillator\UnitTest1\x64\Debug\UnitTest1.dll

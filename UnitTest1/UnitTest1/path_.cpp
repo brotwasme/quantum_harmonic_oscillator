@@ -40,14 +40,14 @@ float path_::rnd()
 	return rand() / ((float)(RAND_MAX + 1));
 }
 
-float* path_::thermolise()
+void path_::thermolise()
 {
 	for (int i = 0; i < _N; i++)
 	{
 		_path[i] = (float) 0;
 	}
-	float* dat = data();
-	return dat;
+	//float* dat = data();
+	//return dat;
 }
 
 int path_::next()
@@ -58,7 +58,7 @@ int path_::next()
 
 float path_::calc_x()
 {
-	float x = _x_old + _h * (_rnd - 0.5);
+	float x = (float) _x_old + _h * (_rnd - 0.5);
 	_x_new = x;
 	return x;
 }
@@ -85,7 +85,7 @@ float path_::calc_delta_s()
 float* path_::data()
 {
 	_data[_N];
-	for (int i = 0; i < _N; i++)
+	for (int i = 0; i <= _N; i++)
 	{
 		_data[i] = _path[i];
 	}

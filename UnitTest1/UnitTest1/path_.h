@@ -17,7 +17,7 @@ public:
 	float calc_delta_s();
 	float calc_mean();
 	float calc_mean2();
-	float* thermolise();
+	void thermolise();
 	void loop();
 	float* data();
 	float* _data;
