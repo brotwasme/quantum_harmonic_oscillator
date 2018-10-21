@@ -1,55 +1,43 @@
 #include "menip.h"
-#include "calc.h"
+//#include "calc.h"
+//#include "play.h"
+#include <vector>
 
+void p_v(std::vector<float> v)
+{
+	printf("vector: [");
+	for (int i = 0; i < v.size()-1; i++)
+	{
+		printf("%f, ", v[i]);
+	}
+	printf("%f] \n", v[v.size()-1]);
+}
 int main()
 {/*
-	calculator cal;
-	float p = cal.begining();
-	cal.loop(1);
-	int N = cal.size();
-	float* data_;
-	data_ = new float[N];
-	for (int i = 0; i < N; i++)
+	int size = 100;
+	int times = 1000;
+	float arry[100];
+	int no[100];
+	std::vector<float> path(size);
+	menipulator men;
+	path = men.begining(path);
+	path = men.loop(path, times);
+	p_v(path);
+	float x = men.Ex(path);
+	float x2 = men.Ex2(path);
+	printf("\nx: %f \nx^2: %f", x, x2);
+	float rate = men.accepted_rate(size*times);
+	printf("\naccept rate: %f \n", rate);
+	for (int i = 0; i < path.size(); i++)
 	{
-		data_[i] = cal.data_i(i);
+		//arry[i] = path[i];
+		no[i] = i;
 	}
-	data_;
+	//arry;
+	no;
+	path;
 	*/
-	menipulator menip;
-	int N = menip.size();
-	float *path;
-	float rnd_n;
-	int t;
-	int t_min;
-	int t_plu;
-	float x_old;
-	float x_min;
-	float x_plu;
-	float x_new;
-	float ds_;
-	for (int i = 0; i < N; i++)
-	{
-
-	}
-	for (int i = 0; i < N; i++)
-	{
-		rnd_n = menip.rnd();
-		t = menip.next(rnd_n);
-		t_min = (t + N - 1) % N;
-		t_plu = (t + 1) % N;
-		rnd_n = menip.rnd();
-		x_old = path[t];
-		x_new = menip.x_evol(x_old, rnd_n);
-		x_min = path[t_min];
-		x_plu = path[t_plu];
-		ds_ = menip.ds(x_min, x_plu, x_old, x_new);
-		rnd_n = menip.rnd();
-		bool check = menip.metropolis(ds_, rnd_n);
-		if (check)
-		{
-			path[t] = x_new;
-		}
-	}
-	menip.h_evol();
+	menipulator men;
+	men.test();
 	return 0;
 }

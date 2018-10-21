@@ -1,2 +1,7 @@
-﻿  calc.cpp
+﻿  menip.cpp
+c:\users\john\source\repos\unittestqmo\qmo\menip.cpp(12): warning C4244: '=': conversion from 'time_t' to 'int', possible loss of data
+c:\users\john\source\repos\unittestqmo\qmo\menip.cpp(48): warning C4018: '<': signed/unsigned mismatch
+c:\users\john\source\repos\unittestqmo\qmo\menip.cpp(65): warning C4018: '<': signed/unsigned mismatch
+c:\users\john\source\repos\unittestqmo\qmo\menip.cpp(76): warning C4018: '<': signed/unsigned mismatch
+c:\users\john\source\repos\unittestqmo\qmo\menip.cpp(168): warning C4018: '<': signed/unsigned mismatch
   qmo.vcxproj -> C:\Users\John\source\repos\UnitTestqmo\Debug\qmo.exe
