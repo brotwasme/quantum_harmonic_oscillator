@@ -19,8 +19,8 @@ menipulator::menipulator()
 	_accrate = 0;
 	_acpt_rt = (float) 0.8;
 	_h = 1;
-	_m = 0.5;
-	_w = 0.5;
+	_m = 0.1;
+	_w = 0.1;
 }
 
 menipulator::~menipulator()
@@ -61,28 +61,29 @@ float menipulator::ds(float x_m, float x_p, float x_o, float x_n)
 
 float menipulator::Ex(std::vector<float> path)
 {
-	float sum = 0;
-	for (int i = 0; i < path.size(); i++)
-	{
-		sum += path[i];
-	}
+	float sum_ = sum(path);
+	int N = path.size();
+	return Ex(sum_, N);
+}
 
-	return sum / path.size();
+float menipulator::Ex(float sumx, int N)
+{
+	return sumx / N;
+}
+
+float menipulator::Ex2(float sumsum, int N)
+{
+	return sumsum / N;
 }
 
 float menipulator::Ex2(std::vector<float> path)
 {
-	float sum = 0;
-	for (int i = 0; i < path.size(); i++)
-	{
-		sum += path[i]* path[i];
-	}
+	int N =  path.size();
+	path = xx(path);
+	float sumxx = sum(path);
 
-	return sum / path.size();
+	return Ex2(sumxx, N);
 }
-
-
-
 
 float menipulator::h_evol()
 {
@@ -92,13 +93,50 @@ float menipulator::h_evol()
 
 float menipulator::jack_knife(std::vector<float> path, int B)
 {
+	path = jack_knife_edit(path, B);
+	float sum_ = sum(path);
+	std::vector<float> estm = jack_knife_estim(path, B, sum_);
+	float mean = Ex(path);
+	float var = jack_knife_var(estm, B, path.size(), mean);
+	return sqrt(var);
+}
+
+std::vector<float> menipulator::jack_knife_edit(std::vector<float> path, int B)
+{
 	int N = path.size();
 	int rem = N % B;
 	if (rem != 0) {
 		path.erase(path.begin(), path.begin() + rem);
 	}
-	float mean = Ex(path);
-	return 0.0f;
+	return path;
+}
+
+std::vector<float> menipulator::jack_knife_estim(std::vector<float> path, int B, float sum)
+{
+	int N = path.size();
+	std::vector<float> estemator(N/B, 0);
+	float elim;
+	for (int i = 0; i < N / B; i++)
+	{
+		elim = 0;
+		for (int j = 0; j < i*B +B; j++)
+		{
+			elim += path[j];
+		}
+		estemator[i] = (sum - elim)/(N-B);
+	}
+	return estemator;
+}
+
+float menipulator::jack_knife_var(std::vector<float> estim, int B, int N, float mean)
+{
+	float var = 0;
+	for (int i = 0; i < N / B; i++)
+	{
+		float x = (estim[i] - mean);
+		var += x * x*(N / B - 1) / (N - B);
+	}
+	return var;
 }
 
 std::vector<float> menipulator::loop(std::vector<float> path, int n_times)
@@ -192,11 +230,23 @@ float menipulator::sigma2(std::vector<float> v, float mean)
 	return sig2;
 }
 
+float menipulator::sum(std::vector<float> x)
+{
+	float sum = 0;
+	for (int i = 0; i < x.size(); i++)
+	{
+		sum += x[i];
+	}
+	return sum;
+}
+
 void menipulator::test()
 {
 	test_Ex();
 	test_Ex2();
+	test_h_evol();
 	test_rnd();
+	test_x_evol();
 }
 
 void menipulator::test_Ex()
@@ -244,6 +294,21 @@ void menipulator::test_rnd()
 	printf("%d rnd %s\n", result, result == 3 ? "true" : "false");
 }
 
+void menipulator::test_x_evol()
+{
+	_h = 1;
+	float x = x_evol(1, 1);
+	printf("%d  x_evo %s\n", x, x == 1 ? "true": "false");
+}
+
+void menipulator::test_h_evol()
+{
+	_accrate = 1;
+	_acpt_rt = 0.8;
+	float h = h_evol();
+	printf("%d h evol %s \n", h, (h == 1.0 / 0.8) ? "true" : "false");
+}
+
 std::vector<float> menipulator::to_vector(float * array, int N)
 {
 	std::vector<float> v(N);
@@ -263,4 +328,14 @@ float menipulator::x_evol(float x, float rnd)
 {
 	float x_new = (float)(x - _h * 2*(rnd - 0.5));
 	return x_new;
+}
+
+std::vector<float> menipulator::xx(std::vector<float> path)
+{
+	for (int i = 0; i < path.size(); i++)
+	{
+		float  x = path[i];
+		path[i] = x * x;
+	}
+	return path;
 }

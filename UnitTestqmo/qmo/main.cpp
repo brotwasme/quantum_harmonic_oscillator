@@ -13,12 +13,11 @@ void p_v(std::vector<float> v)
 	printf("%f] \n", v[v.size()-1]);
 }
 int main()
-{/*
+{/**/
 	int size = 100;
-	int times = 1000;
-	float arry[100];
-	int no[100];
+	int times = 500;
 	std::vector<float> path(size);
+	std::vector<float> path2(size);
 	menipulator men;
 	path = men.begining(path);
 	path = men.loop(path, times);
@@ -28,16 +27,11 @@ int main()
 	printf("\nx: %f \nx^2: %f", x, x2);
 	float rate = men.accepted_rate(size*times);
 	printf("\naccept rate: %f \n", rate);
-	for (int i = 0; i < path.size(); i++)
-	{
-		//arry[i] = path[i];
-		no[i] = i;
-	}
-	//arry;
-	no;
-	path;
-	*/
+	float error_jacked = men.jack_knife(path, 10);
+	printf("jacked error %f\n", error_jacked);
+	path2 = men.xx(path);
+		/*
 	menipulator men;
-	men.test();
+	men.test();*/
 	return 0;
 }
