@@ -14,9 +14,9 @@ namespace test
 		TEST_CLASS_INITIALIZE(test_qmo)
 		{
 			menipulator men;
-			float _rnd1 = men.rnd();
-			float _rnd2 = men.rnd();
-			float _rnd3 = men.rnd();
+			double _rnd1 = men.rnd();
+			double _rnd2 = men.rnd();
+			double _rnd3 = men.rnd();
 		}
 
 		TEST_METHOD(TestMethod1)
@@ -27,8 +27,8 @@ namespace test
 		}
 
 	private:
-		float _rnd1;
-		float _rnd2;
-		float _rnd3;
+		double _rnd1;
+		double _rnd2;
+		double _rnd3;
 	};
 }

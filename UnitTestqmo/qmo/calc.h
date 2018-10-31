@@ -6,28 +6,28 @@ class calculator
 public:
 	calculator();
 	~calculator();
-	float accrate();
-	float accrate(float);
-	float begining();
-	float data_i(int);
-	float* data_all();
-	float ds(float x_min, float x_plu, float x_old, float x_new);
-	float expE();
-	float expE2();
-	float h_evol();
+	double accrate();
+	double accrate(double);
+	double begining();
+	double data_i(int);
+	double* data_all();
+	double ds(double x_min, double x_plu, double x_old, double x_new);
+	double expE();
+	double expE2();
+	double h_evol();
 	void loop(int n_times);
-	bool metropolis(float ds, float rnd);
-	int next(float rnd);
-	float rnd();
+	bool metropolis(double ds, double rnd);
+	int next(double rnd);
+	double rnd();
 	int size();
-	float x_evol(float x, float rnd);
+	double x_evol(double x, double rnd);
 
 private:
-	float _accrate;
-	float _acpt_rt;
-	float _h;
-	float _m;
+	double _accrate;
+	double _acpt_rt;
+	double _h;
+	double _m;
 	const int _N = 5;
-	float* _path;
-	float _w;
+	double* _path;
+	double _w;
 };

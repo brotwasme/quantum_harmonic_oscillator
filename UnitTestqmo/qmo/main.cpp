@@ -3,10 +3,10 @@
 //#include "play.h"
 #include <vector>
 
-void p_v(std::vector<float> v)
+void p_v(std::vector<double> v)
 {
 	printf("vector: [");
-	for (int i = 0; i < v.size()-1; i++)
+	for (int i = 0; i < (int) v.size()-1; i++)
 	{
 		printf("%f, ", v[i]);
 	}
@@ -14,24 +14,49 @@ void p_v(std::vector<float> v)
 }
 int main()
 {/**/
-	int size = 100;
-	int times = 500;
-	std::vector<float> path(size);
-	std::vector<float> path2(size);
+	double mw = 0.8;
+	int size = 150;
+	int times = 100;
+	int drop = 100;
+	double rate = 0.8;
+	const int len = 120;
+	std::vector<double> xs(len, 0);
+	std::vector<double> x2s(len, 0);
+
+	std::vector<double> path(size);
 	menipulator men;
-	path = men.begining(path);
-	path = men.loop(path, times);
+	men.rn_set();
+	path = men.begining(path, mw);
+
+	path = men.loop(path, 1);
+	path = men.loop(path, 50);
+	for (int i = 0; i < 100; i++) {
+		path = men.loop(path, drop);
+	}
 	p_v(path);
-	float x = men.Ex(path);
-	float x2 = men.Ex2(path);
-	printf("\nx: %f \nx^2: %f", x, x2);
-	float rate = men.accepted_rate(size*times);
+	for (int i = 0; i<len; i++)
+	{
+		path = men.loop(path, drop);
+		xs[i] = men.Ex(path);
+		x2s[i] = men.Ex2(path);
+		//printf("%f, %f\n", x, x2);
+	}
+	printf("xs: ");
+	p_v(xs);
+	printf("\nx2s: ");
+	p_v(x2s);
+	printf("\n");
+	rate = men.accepted_rate();
 	printf("\naccept rate: %f \n", rate);
-	float error_jacked = men.jack_knife(path, 10);
-	printf("jacked error %f\n", error_jacked);
-	path2 = men.xx(path);
+	double errorx_jacked = men.jack_knife(xs, 10);
+	double errorx2_jacked = men.jack_knife(x2s, 10);
+	printf("jacked x error %f\n", errorx_jacked);
+	printf("jacked x ^2 error %f\n", errorx2_jacked);
+	double mean_x = men.Ex(xs);
+	double mean_x2 = men.Ex(x2s);
+	printf("mean: %f, mean sqr: %f", mean_x, mean_x2);
 		/*
 	menipulator men;
-	men.test();*/
+	men.test();  */
 	return 0;
 }

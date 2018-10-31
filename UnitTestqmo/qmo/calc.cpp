@@ -16,79 +16,79 @@ calculator::calculator()
 	}
 	srand(time);
 	_accrate = 0;
-	_acpt_rt = (float) 0.8;
+	_acpt_rt = (double) 0.8;
 	_h = 1;
 	_m = 1;
 	_w = 1;
-	std::vector<float> _path(_N, 0);
+	std::vector<double> _path(_N, 0);
 }
 
 calculator::~calculator()
 {
 }
 
-float calculator::accrate()
+double calculator::accrate()
 {
-	_accrate += (1 / ((float)_N));
+	_accrate += (1 / ((double)_N));
 	return _accrate;
 }
 
-float calculator::accrate(float accrate)
+double calculator::accrate(double accrate)
 {
 	_accrate = accrate;
 	return _accrate;
 }
 
-float calculator::begining()
+double calculator::begining()
 {
 	for (int i = 0; i < _N; i++)
 	{
-		_path[i] = (float) 0;
+		_path[i] = (double) 0;
 	}
 	return 0;
 }
 
-float calculator::ds(float x_m, float x_p, float x_o, float x_n)
+double calculator::ds(double x_m, double x_p, double x_o, double x_n)
 {
-	float ds = (float) 0.5*_m*(x_n*(_w*_w*x_n + 2 * (x_n - x_p - x_m)
+	double ds = (double) 0.5*_m*(x_n*(_w*_w*x_n + 2 * (x_n - x_p - x_m)
 		- x_o * (_w*_w*x_o + 2 * (x_o - x_p - x_m))));
 	return ds;
 }
 
-float calculator::data_i(int i)
+double calculator::data_i(int i)
 {
 	return _path[i];
 }
-float* calculator::data_all()
+double* calculator::data_all()
 {
 	return _path;
 }
 
-float calculator::expE()
+double calculator::expE()
 {
-	float mean;
-	float sum = 0;
+	double mean;
+	double sum = 0;
 	for (int i = 0; i < _N; i++)
 	{
 		sum += _path[i];
 	}
-	mean = sum / (float)_N;
+	mean = sum / (double)_N;
 	return mean;
 }
 
-float calculator::expE2()
+double calculator::expE2()
 {
-	float mean2;
-	float sum2 = 0;
+	double mean2;
+	double sum2 = 0;
 	for (int i = 0; i < _N; i++)
 	{
 		sum2 += _path[i] * _path[i];
 	}
-	mean2 = sum2 / (float)_N;
+	mean2 = sum2 / (double)_N;
 	return mean2;
 }
 
-float calculator::h_evol()
+double calculator::h_evol()
 {
 	_h = (_h*_accrate) / _acpt_rt;
 	return _h;
@@ -96,15 +96,15 @@ float calculator::h_evol()
 
 void calculator::loop(int n_times)
 {
-	float rnd_n;
+	double rnd_n;
 	int t;
 	int t_min;
 	int t_plu;
-	float x_old;
-	float x_min;
-	float x_plu;
-	float x_new;
-	float ds_;
+	double x_old;
+	double x_min;
+	double x_plu;
+	double x_new;
+	double ds_;
 	for (int i = 0; i < _N; i++)
 	{
 		rnd_n = rnd();
@@ -127,13 +127,13 @@ void calculator::loop(int n_times)
 	h_evol();
 }
 
-bool calculator::metropolis(float ds, float rnd)
+bool calculator::metropolis(double ds, double rnd)
 {
 	bool keep_x = true;
 	if (ds < 0)
 	{
-		float comp = 0.5;
-		float prob = exp(-ds);
+		double comp = 0.5;
+		double prob = exp(-ds);
 		if (comp > prob)
 		{
 			keep_x = false;
@@ -143,15 +143,15 @@ bool calculator::metropolis(float ds, float rnd)
 	return keep_x;
 }
 
-int calculator::next(float rnd)
+int calculator::next(double rnd)
 {
 	int next = (int)rnd * _N;
 	return next;
 }
 
-float calculator::rnd()
+double calculator::rnd()
 {
-	float rnd = (float)rand() / (RAND_MAX + 1);
+	double rnd = (double)rand() / (RAND_MAX + 1);
 	return rnd;
 }
 
@@ -160,8 +160,8 @@ int calculator::size()
 	return _N;
 }
 
-float calculator::x_evol(float x, float rnd)
+double calculator::x_evol(double x, double rnd)
 {
-	float x_new = (float)(x + _h * (rnd - 0.5));
+	double x_new = (double)(x + _h * (rnd - 0.5));
 	return x_new;
 }
