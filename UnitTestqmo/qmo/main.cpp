@@ -13,13 +13,13 @@ void p_v(std::vector<double> v)
 	printf("%f] \n", v[v.size()-1]);
 }
 int main()
-{/**/
-	double mw = 0.8;
-	int size = 150;
+{/*
+	double mw = 0.5;
+	int size = 51;
 	int times = 100;
 	int drop = 100;
 	double rate = 0.8;
-	const int len = 120;
+	const int len = 100;
 	std::vector<double> xs(len, 0);
 	std::vector<double> x2s(len, 0);
 
@@ -55,7 +55,19 @@ int main()
 	double mean_x = men.Ex(xs);
 	double mean_x2 = men.Ex(x2s);
 	printf("mean: %f, mean sqr: %f", mean_x, mean_x2);
-		/*
+	*/
+	menipulator men;
+	double mw = 0.1;
+	double acpt = 0.5;
+	int Nconfigs = 1200;
+	int drop = 120;
+	double rate = 0.8;
+	const int len = 1200;
+	std::string file_name_x = "xn.txt";
+	std::string file_name_d = "data.txt";
+	std::vector<double> path(len, 0);
+	men.full(len, file_name_d, file_name_x, drop, Nconfigs, mw, acpt);
+	/*
 	menipulator men;
 	men.test();  */
 	return 0;

@@ -3,6 +3,7 @@
 #include <vector>
 #include <time.h>
 #include <iostream>
+#include <fstream>
 
 menipulator::menipulator()
 {
@@ -46,6 +47,24 @@ std::vector<double> menipulator::begining(std::vector<double> path, double mw)
 	return path;
 }
 
+std::vector<double> menipulator::corralation(std::vector<double> cor, std::vector<double> path)
+{
+	double mean;
+	for (int i = 0; i < path.size(); i++)
+	{
+		mean = 0;
+		for (int j = 0; j < path.size(); j++)
+		{
+			mean += path[j] * path[j+((j - i) % path.size())]/(double)path.size();
+		}
+		cor[i] += mean;
+	}
+
+	return std::vector<double>();
+}
+
+
+
 double menipulator::ds(double x_m, double x_p, double x_o, double x_n)
 {
 	double ds = (double) 0.5*_m*(x_n*(_w*_w*x_n + 2 * (x_n - x_p - x_m)
@@ -73,6 +92,20 @@ double menipulator::Ex(double sumx, int N)
 	return sumx / N;
 }
 
+double menipulator::Ex(std::vector<double> path, int pow)
+{
+	double sum = 0;
+	for (int i = 0; i < path.size(); i++)
+	{
+		sum += std::pow(path[i], pow);
+	}
+	if (sum < 0 && pow % 2 == 0)
+	{
+		printf("negetive %f with power %d", sum, pow);
+	}
+	return  sum/ ((double) path.size());
+}
+
 double menipulator::Ex2(double sumsum, int N)
 {
 	return sumsum / N;
@@ -86,6 +119,101 @@ double menipulator::Ex2(std::vector<double> path)
 
 	return Ex2(sumxx, N);
 }
+
+void menipulator::file(std::string file_d, std::string file_x, double path_size, double N_configs, double drops_per)
+{
+	std::ofstream myfile_d;
+	myfile_d.open(file_d);
+	myfile_d.clear();
+	myfile_d << path_size << ' ' << N_configs << ' ' << drops_per << ' ' << _m << ' ';// << std::endl;
+	myfile_d.close();
+	std::ofstream myfile_x;
+	myfile_x.open(file_x);
+	myfile_x.clear();
+	myfile_x << path_size << ' ' << N_configs << ' ' << drops_per << ' ' << _m << ' ' << 4 << ' ';// << std::endl;
+	myfile_x.close();
+}
+
+void menipulator::file( std::string file_x, double path_size, double N_configs, double drops_per)
+{
+	std::ofstream myfile_x;
+	myfile_x.open(file_x);
+	myfile_x << path_size << ' ' << N_configs << ' ' << drops_per << ' ' << _m << ' ';// << std::endl;
+	myfile_x.close();
+}
+
+void menipulator::file(std::string file_d, std::string file_x, std::vector<double> path, double Ex, double Ex2, double Ex3, double Ex4)
+{
+	std::ofstream myfile_d;
+	myfile_d.open(file_d, std::ios_base::app);
+	for (int i = 0; i < path.size(); i++)
+	{
+		myfile_d << path[i] << ' ';
+	}
+	myfile_d.close();
+	std::ofstream myfile_x;
+	myfile_x.open(file_x, std::ios_base::app);
+	myfile_x << Ex << ' ' << Ex2 << ' ' << Ex3 << ' ' << Ex4 << ' ';// << std::endl;
+	myfile_x.close();
+}
+void menipulator::file( std::string file_x, std::vector<double> path, std::vector<double> Exn)
+{
+	std::ofstream myfile_x;
+	myfile_x.open(file_x, std::ios_base::app);
+	for (int i = 0; i < Exn.size(); i++)
+	{
+		myfile_x << Exn[i] << ' ';
+		if ((i + 1) % 2 == 0 && Exn[i] < 0)
+		{
+			printf("negative %f pow %d", Exn[i], i + 1);
+		}
+	}
+	myfile_x.close();
+}
+
+
+void menipulator::full(const int path_len, std::string file_name_d, std::string file_name_x, double drop_per, double N_configs, double m, double acpt_rt)
+{
+	_acpt_rt = acpt_rt;
+	std::vector<double> path(path_len);
+	rn_set();
+	path = begining(path, m);
+	double Ex_, Ex2_, Ex3_, Ex4_;
+	int pow_ = 1;
+	file(file_name_d, file_name_x, path.size(), N_configs, drop_per);
+	for (int i = 0; i < N_configs; i++)
+	{
+		path = loop(path, drop_per);
+		Ex_ = Ex(path, pow_);
+		pow_ = 2;
+		Ex2_ = Ex(path, pow_);
+		pow_ = 3;
+		Ex3_ = Ex(path, pow_);
+		pow_ = 4;
+		Ex4_ = Ex(path, pow_);
+		file(file_name_d, file_name_x, path, Ex_, Ex2_, Ex3_, Ex4_);
+	}
+}
+void menipulator::full(const int path_len, std::string file_name_x, double drop_per, double N_configs, double m, double acpt_rt)
+{
+	const int n = 4;
+	_acpt_rt = acpt_rt;
+	std::vector<double> path(path_len);
+	std::vector<double> Exn(n);
+	rn_set();
+	path = begining(path, m);
+	file(file_name_x, path.size(), N_configs, drop_per);
+	for (int i = 0; i < N_configs; i++)
+	{
+		path = loop(path, drop_per);
+		for (int j = 0; j < n; j++)
+		{
+			Exn[j] = Ex(path, j+1);
+		}
+		file(file_name_x, path, Exn);
+	}
+}
+
 
 double menipulator::h_evol()
 {
@@ -298,11 +426,18 @@ void menipulator::test_ds()
 void menipulator::test_Ex()
 {
 	double mean = 0;
-	std::vector<double> v = { 1,2,3,4,5 };
+	std::vector<double> v = { -1,2,-3,4,-5 };
 	try
 	{
-		double mean = Ex(v);
-		printf("mean %f %s\n", mean, mean == 15 / 5 ? "true" : "false");
+		mean = Ex(v, 1);
+		double thing = -(double)3 / 5;
+		printf("mean %f %f %s\n", mean, thing, mean <= (-(double)3 / 5) +0.05 && mean >= (-(float)3 / 5) - 0.05 ? "true" : "false");
+		mean = Ex(v, 2);
+		printf("mean %f %s\n", mean, mean <= (double)55 / 5 + 0.05 && mean >= (double)55 / 5 - 0.05 ? "true" : "false");
+		mean = Ex(v, 3);
+		printf("mean %f %s\n", mean, mean <= -(double)81 / 5 + 0.05 && mean >= -(double)81 / 5 - 0.05 ? "true" : "false");
+		mean = Ex(v, 4);
+		printf("mean %f %s\n", mean,  mean <= (double)979/ 5 +0.05 && mean >= (double)979 / 5 - 0.05 ? "true" : "false");
 	}
 	catch (const std::exception& e)
 	{
@@ -355,6 +490,7 @@ void menipulator::test_h_evol()
 {
 	try
 	{
+	_h = 1;
 	_accrate = 1;
 	_acpt_rt = 0.8;
 	double h = h_evol();
