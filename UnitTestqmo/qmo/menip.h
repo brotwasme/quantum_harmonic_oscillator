@@ -18,12 +18,13 @@ public:
 	double Ex(double sumx, int N);
 	double Ex2(double sumxx, int N);
 	double Ex2(std::vector<double> path);
-	void file(std::string file_x, double path_size, double N_configs, double drops_per);
-	void file(std::string file_d, std::string file_x, double path_size, double N_configs, double drops_per);
+	void file(std::string file_d, double path_size, double N_configs, double drops_per);
+	void file(std::string file_x, double path_size, double N_configs, double drops_per, double n);
+	void file(std::string file_d, std::string file_x, double path_size, double N_configs, double drops_per, double n);
 	void file(std::string file_d, std::string file_x, std::vector<double> path, double Ex, double Ex2, double Ex3, double Ex4);
 	void file(std::string file_x, std::vector<double> path, std::vector<double> Exn);
-	void full(const int path_len, std::string file_name_d, std::string file_name_x, double drop_per, double N_configs, double m, double acpt_rt);
-	void full(const int path_len, std::string file_name_x, double drop_per, double N_configs, double m, double acpt_rt);
+	std::vector<double> full(const int path_len, std::string file_name_d, std::string file_name_x, double drop_per, double N_configs, double m, double acpt_rt);
+	std::vector<double> full(const int path_len, std::string file_name_x, double drop_per, double N_configs, double m, double acpt_rt);
 	double h_evol();
 	double jack_knife(std::vector<double> path, int B);
 	std::vector<double> jack_knife_edit(std::vector<double> path, int B);

@@ -74,9 +74,10 @@ double menipulator::ds(double x_m, double x_p, double x_o, double x_n)
 
 double menipulator::ds_comp(double x_min, double x_plu, double x_old, double x_new)
 {
-	double s_o = 0.5 *_m *( (x_plu - x_old)*(x_plu - x_old)+ (x_old - x_min)*(x_old - x_min)+ _w*_w*x_old*x_old);
-	double s_n = 0.5 * _m*((x_plu - x_new)*(x_plu - x_new) + (x_new - x_plu)*(x_new - x_plu)+_w*_w*x_new*x_new);
-	double ds = s_n - s_o;
+	double s_o = pow(x_plu - x_old,2) + pow(x_old - x_min,2)+ pow(_w*x_old, 2);
+	double s_n = pow(x_plu - x_new, 2) + pow(x_new - x_min,2)+pow(_w*x_new, 2);
+	//printf("o: %f, n: %f", s_o*_m/2, s_n*_m/2);
+	double ds = 0.5*_m*(s_n - s_o);
 	return ds;
 }
 
@@ -99,10 +100,10 @@ double menipulator::Ex(std::vector<double> path, int pow)
 	{
 		sum += std::pow(path[i], pow);
 	}
-	if (sum < 0 && pow % 2 == 0)
-	{
-		printf("negetive %f with power %d", sum, pow);
-	}
+	//if (sum < 0 && pow % 2 == 0)
+	//{
+	//	printf("negetive %f with power %d", sum, pow);
+	//}
 	return  sum/ ((double) path.size());
 }
 
@@ -120,26 +121,26 @@ double menipulator::Ex2(std::vector<double> path)
 	return Ex2(sumxx, N);
 }
 
-void menipulator::file(std::string file_d, std::string file_x, double path_size, double N_configs, double drops_per)
+void menipulator::file(std::string file_d, std::string file_x, double path_size, double N_configs, double drops_per, double n)
 {
-	std::ofstream myfile_d;
-	myfile_d.open(file_d);
-	myfile_d.clear();
-	myfile_d << path_size << ' ' << N_configs << ' ' << drops_per << ' ' << _m << ' ';// << std::endl;
-	myfile_d.close();
+	file(file_d, path_size, N_configs, drops_per);
+	file(file_x, path_size, N_configs, drops_per, n);
+}
+
+void menipulator::file(std::string file_x, double path_size, double N_configs, double drops_per, double n)
+{
 	std::ofstream myfile_x;
 	myfile_x.open(file_x);
-	myfile_x.clear();
-	myfile_x << path_size << ' ' << N_configs << ' ' << drops_per << ' ' << _m << ' ' << 4 << ' ';// << std::endl;
+	myfile_x << path_size << ' ' << N_configs << ' ' << drops_per << ' ' << _m << ' ' << n << ' ';// << std::endl;
 	myfile_x.close();
 }
 
-void menipulator::file( std::string file_x, double path_size, double N_configs, double drops_per)
+void menipulator::file(std::string file_d, double path_size, double N_configs, double drops_per)
 {
-	std::ofstream myfile_x;
-	myfile_x.open(file_x);
-	myfile_x << path_size << ' ' << N_configs << ' ' << drops_per << ' ' << _m << ' ';// << std::endl;
-	myfile_x.close();
+	std::ofstream myfile_d;
+	myfile_d.open(file_d);
+	myfile_d << path_size << ' ' << N_configs << ' ' << drops_per << ' ' << _m << ' ';// << std::endl;
+	myfile_d.close();
 }
 
 void menipulator::file(std::string file_d, std::string file_x, std::vector<double> path, double Ex, double Ex2, double Ex3, double Ex4)
@@ -163,26 +164,27 @@ void menipulator::file( std::string file_x, std::vector<double> path, std::vecto
 	for (int i = 0; i < Exn.size(); i++)
 	{
 		myfile_x << Exn[i] << ' ';
-		if ((i + 1) % 2 == 0 && Exn[i] < 0)
-		{
-			printf("negative %f pow %d", Exn[i], i + 1);
-		}
+		//if ((i + 1) % 2 == 0 && Exn[i] < 0)
+		//{
+		//	printf("negative %f pow %d", Exn[i], i + 1);
+		//}
 	}
 	myfile_x.close();
 }
 
 
-void menipulator::full(const int path_len, std::string file_name_d, std::string file_name_x, double drop_per, double N_configs, double m, double acpt_rt)
+std::vector<double> menipulator::full(const int path_len, std::string file_name_d, std::string file_name_x, double drop_per, double N_configs, double m, double acpt_rt)
 {
 	_acpt_rt = acpt_rt;
 	std::vector<double> path(path_len);
 	rn_set();
 	path = begining(path, m);
 	double Ex_, Ex2_, Ex3_, Ex4_;
-	int pow_ = 1;
-	file(file_name_d, file_name_x, path.size(), N_configs, drop_per);
+	int pow_;
+	file(file_name_d, file_name_x, path.size(), N_configs, drop_per, 4);
 	for (int i = 0; i < N_configs; i++)
 	{
+		pow_ = 1;
 		path = loop(path, drop_per);
 		Ex_ = Ex(path, pow_);
 		pow_ = 2;
@@ -193,8 +195,9 @@ void menipulator::full(const int path_len, std::string file_name_d, std::string 
 		Ex4_ = Ex(path, pow_);
 		file(file_name_d, file_name_x, path, Ex_, Ex2_, Ex3_, Ex4_);
 	}
+	return path;
 }
-void menipulator::full(const int path_len, std::string file_name_x, double drop_per, double N_configs, double m, double acpt_rt)
+std::vector<double> menipulator::full(const int path_len, std::string file_name_x, double drop_per, double N_configs, double m, double acpt_rt)
 {
 	const int n = 4;
 	_acpt_rt = acpt_rt;
@@ -202,7 +205,7 @@ void menipulator::full(const int path_len, std::string file_name_x, double drop_
 	std::vector<double> Exn(n);
 	rn_set();
 	path = begining(path, m);
-	file(file_name_x, path.size(), N_configs, drop_per);
+	file(file_name_x, path.size(), N_configs, drop_per, n);
 	for (int i = 0; i < N_configs; i++)
 	{
 		path = loop(path, drop_per);
@@ -212,6 +215,7 @@ void menipulator::full(const int path_len, std::string file_name_x, double drop_
 		}
 		file(file_name_x, path, Exn);
 	}
+	return path;
 }
 
 
@@ -350,7 +354,7 @@ double menipulator::rnd()
 void menipulator::rn_set()
 {
 	int time_;
-	if (true)
+	if (false)
 	{
 		time_ = time(NULL);
 	}
@@ -405,20 +409,21 @@ void menipulator::test()
 
 void menipulator::test_ds()
 {
-
 	try
 	{
+		_m = 1;
+		_w = 1;
 		double ds_a;
-		ds_a = ds(1, 1, 1, 1);
-		printf("ds %f %s\n", ds_a, ds_a == 0 ? "true" : "false");
-
-		ds_a = ds(2, 5, 1, 9);
-		double ds_b = ds_comp(2, 5, 1, 9);
-		printf("ds %f %f %s\n", ds_a, ds_b, ds_a == ds_b ? "true" : "false");
+		ds_a = ds(-2, 5, -1, 6);
+		//printf("ds %f %s\n", ds_a, ds_a == 31.5 ? "true" : "false");
+		double ds_b = ds_comp(-2, 5, -1, 6);
+		//printf("ds %f %s\n", ds_b, ds_a == 31.5 ? "true" : "false");
+		//printf("ds %f %f %s\n", ds_a, ds_b, ds_a == ds_b ? "true" : "false");
 	}
 	catch (const std::exception& e)
 	{
 		std::cout << e.what();
+		printf("\n\n\n\n\nhelloe\n\n\n\n");
 	}
 
 }
@@ -584,7 +589,7 @@ std::vector<double> menipulator::to_vector(double * array, int N)
 
 double menipulator::x_evol(double x, double rnd)
 {
-	double x_new = (double)(x - _h * 2*(rnd - 0.5));
+	double x_new = (double)(x - _h * (rnd - 0.5));
 	return x_new;
 }
 
