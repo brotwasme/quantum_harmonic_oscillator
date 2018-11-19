@@ -65,16 +65,16 @@ int main()
 	if (true)
 	{
 		menipulator men;
-		double mw = 1;
-		double acpt = 0.5;
+		double mw = 0.6;
+		double acpt = 0.6;
 		int Nconfigs = 10000;
-		int drop = 12;
-		const int len = 120;
-		std::string file_name_x = "xn.txt";
-		std::string file_name_d = "data.txt";
+		int drop = 1;
+		const int len = 200;
+		std::string file_name_x = "xn_1.txt";
+		std::string file_name_d = "data_1.txt";
 		std::vector<double> path(len, 0);
-		//path = men.full(len, file_name_d, file_name_x, drop, Nconfigs, mw, acpt);
-		path = men.full(len, file_name_x, drop, Nconfigs, mw, acpt);
+		path = men.full(len, file_name_d, file_name_x, drop, Nconfigs, mw, acpt);
+		//path = men.full(len, file_name_x, drop, Nconfigs, mw, acpt);
 		printf("done");
 	}
 	if (false)

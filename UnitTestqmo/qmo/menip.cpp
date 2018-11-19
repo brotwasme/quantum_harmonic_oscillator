@@ -181,6 +181,7 @@ std::vector<double> menipulator::full(const int path_len, std::string file_name_
 	path = begining(path, m);
 	double Ex_, Ex2_, Ex3_, Ex4_;
 	int pow_;
+	drop_per = drop_per + 1;
 	file(file_name_d, file_name_x, path.size(), N_configs, drop_per, 4);
 	for (int i = 0; i < N_configs; i++)
 	{
@@ -203,6 +204,7 @@ std::vector<double> menipulator::full(const int path_len, std::string file_name_
 	_acpt_rt = acpt_rt;
 	std::vector<double> path(path_len);
 	std::vector<double> Exn(n);
+	drop_per = drop_per + 1;
 	rn_set();
 	path = begining(path, m);
 	file(file_name_x, path.size(), N_configs, drop_per, n);
