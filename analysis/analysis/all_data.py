@@ -12,15 +12,18 @@ def jack(os, B):
     Eo = np.mean(os)
     tol = np.zeros(NB)
     for i in range(1, NB):
-        ok = np.sum(os[(i-1)*(B):i*B])/B
+        ok = np.mean(os[(i-1)*(B):i*B])
+        #print(len(os[(i-1)*(B):i*B]))
         tol[i] = (np.sum(np.subtract(os, B*ok)))/(N-B)
     iner = np.subtract(tol, Eo)
-    err = (NB -1)*np.sum(np.power(iner, 2))/NB
+    err = (NB -1)*np.mean(np.power(iner, 2))
     return np.sqrt(err)
 
 def error(x, Ex):
     s2 = np.sum(np.power(x-Ex, 2))/(len(x)-1)
-    return np.sqrt(s2/len(x))
+    std = np.sqrt(s2)
+    naive = std/ np.sqrt(len(x))
+    return std, naive
 
 def corralation_mct(fs, gs):
     N = len(gs)
@@ -58,19 +61,24 @@ def interg(acr):
 
 def corralation_tau(fs, gs):
     B = 5
-    Gdt = np.zeros(len(gs[0]))
-    err = np.zeros(len(gs[0]))
+    Gdt = np.zeros(1)
+    err = np.zeros(1)
     gf = np.multiply(gs,fs).flatten()
     Gdt[0] = np.mean(gf);
-    err[0] = jack(gf, B)
+    #err[0] = jack(gf, B)
     for i in range(1, len(gs[0])):
         fs = np.roll(fs, 1, 1)
         gf = np.multiply(gs,fs).flatten()
-        Gdt[i] = np.mean(gf);
-        err[i] = jack(gf, B)
+        mean = np.mean(gf)
+        if mean > 0:
+            Gdt = np.append(Gdt, mean)
+            #err = np.append(err, jack(gf, B))
+        else:
+            break
+            print(mean)
     print(len(Gdt))
     print(len(err))
-    return Gdt[:10], err[:10]
+    return Gdt, err
 
 
 def eff_mass(gdt):
@@ -104,23 +112,27 @@ def get_xs(data, vars):
 
 def xns_means(xs, x2s, x3s, x4s, vars):
     mean_x = np.mean(xs)
-    er_x = error(xs, mean_x)
+    er_x, er_xn = error(xs, mean_x)
+    er_xj = jack(xs, 5)
     
     mean_x2 = np.mean(x2s)
-    er_x2 = error(x2s, mean_x2)
+    er_x2, er_x2n = error(x2s, mean_x2)
+    er_x2j = jack(x2s, 5)
     
     mean_x3 = np.mean(x3s)
-    er_x3 = error(x3s, mean_x3)
+    er_x3, er_x3n = error(x3s, mean_x3)
+    er_x3j = jack(x3s, 5)
 
     mean_x4 = np.mean(x4s)
-    er_x4 = error(x4s, mean_x4)
+    er_x4, er_x4n = error(x4s, mean_x4)
+    er_x4j = jack(x4s, 5)
 
     fluctuation_x = flucuations(xs, mean_x)
     
-    print("mean of x: ", mean_x, "error: ", er_x)
-    print("mean of x^2: ", mean_x2, "error: ", er_x2)
-    print("mean of x^3: ", mean_x3, "error: ", er_x3)
-    print("mean of x^4: ", mean_x4, "error: ", er_x4)
+    print("mean of x: ", mean_x, ", error: ", er_x, ", naive error: ", er_xn, ", jack error: ", er_xj)
+    print("mean of x^2: ", mean_x2, ", error: ", er_x2, ", naive error: ", er_x2n, ", jack error: ", er_xj)
+    print("mean of x^3: ", mean_x3, ", error: ", er_x3, ", naive error: ", er_x3n, ", jack error: ", er_xj)
+    print("mean of x^4: ", mean_x4, ", error: ", er_x4, ", naive error: ", er_x4n, ", jack error: ", er_xj)
     print("size of path: ", vars[1], "fluctuations in x:" , fluctuation_x)
     print( "percentage diffrence between len and fluc^-2", (vars[1] - np.power(fluctuation_x,-2))/vars[1])
     return mean_x, mean_x2, mean_x3, mean_x4
@@ -135,7 +147,7 @@ def prob_dens_plot(data):
     xs_all = np.linspace(-10, 10, 1000)
     plt.plot(xs_all, density(xs_all))
 
-def ploter(data, title, lables, type, N_previous=0, x=[], yerr = []):
+def ploter(data, title, lables, type, N_previous=0, x=[], yerr=[]):
     N = 1
     if not (len(data[0]) == 1):
         N = len(data)
@@ -147,14 +159,20 @@ def ploter(data, title, lables, type, N_previous=0, x=[], yerr = []):
         plt.xlabel(lables[i][1])
         plt.ylabel(lables[i][2])
         plt.grid(True)
+        #print(x,yerr)
         #print(data[i])
+        print(len(data[i]), len(x), len(yerr))
         if type[i] == 1:
-            plt.plot(data[i])
+            plt.plot(data[i], "ro")
         elif type[i] == 2:
             plt.acorr(data[i])
         elif type[i] == 3:
-            plt.semilogy(data[i])
-        elif type[i] == 4:
+            plt.semilogy(data[i], 'ro')
+        elif (type[i] == 4 and len(x) == len(data[i]) and len(yerr) == len(data[i])):
+            print(x,yerr)
+            if (not len(x)==len(data[i])) and (not len(yerr)==len(data[i])):
+                x = np.zeros(len(data[i]))
+                yerr = np.zeros(len(data[i]))
             plt.errorbar(x, data[i], yerr)
     return 1+N_previous
 
@@ -171,8 +189,9 @@ def acorr_ploter(data, title, lables, N_previous=0):
     return 1+N_previous
 
 def xn_func(file=False):
-    if file:
+    if not file:
         file = "xn.txt"
+    print(file)
     vars, data = data_in(file, 5)
     xs, x2s, x3s, x4s = get_xns(data, vars)
     print(vars)
@@ -209,8 +228,9 @@ def xn_func(file=False):
 
 
 def data_func(file=False):
-    if file:
+    if not file:
         file = "data_.txt"
+    print(file)
     vars, data1d = data_in(file, 4)
     m = vars[3]
     #data = get_xs(data, vars)
@@ -222,15 +242,15 @@ def data_func(file=False):
         n=1
     elif not true:
         data = np.reshape(data1d, (int(vars[1]), int(vars[0])))
-        print(data)
-        print(len(data))
-        print(len(data[0]))
-        print(len(data[0,:]))
-        print(data[0][0])
-        print(data[0][1])
+        #print(data)
+        #print(len(data))
+        #print(len(data[0]))
+        #print(len(data[0,:]))
+        #print(data[0][0])
+        #print(data[0][1])
         print(vars)
-        cor, err = corralation_tau(data[:100], data[:100])
-        print(len(cor))
+        cor, err = corralation_tau(data[:1000], data[:1000])
+        #print(len(cor))
         suptitle = "corralation vs imagenary time"
         labels = [["corralation vs d imagenary time",
                   "d imagenary time", "coralation"],
@@ -245,13 +265,13 @@ def data_func(file=False):
         min = 0 #np.abs(np.min(cor))
         #print(min)
 
-        cor1 = np.add(cor, min+min/10000)
+        cor1 = cor/cor[0]
         cor2 = np.mean([ np.correlate(data_l, data_l, mode='full')[len(data_l)-1:]
                        for data_l in data], 0)
         cor2 = cor2/ cor2[0]
-        print(len(cor2))
+        #print(len(cor2))
         mass = eff_mass(cor1)
-        n = ploter([cor, cor1, cor1, mass, cor2], suptitle, labels, [1,1,3,1,1])
+        n = ploter([cor, cor1, cor1, mass, cor2], suptitle, labels, [3,1,3,1,1], n, np.linspace(0, len(cor), len(cor-1)), err)
         pass
 
 
@@ -287,5 +307,5 @@ def main():
     data_func("data_1.txt")
     #play()
     plt.show()
-
+     
 main()
