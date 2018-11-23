@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<ProfilingTarget xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <ProjectTarget>
+    <TargetProject>895a9691-1e26-4a9d-b008-44f21e97d54b</TargetProject>
+    <FriendlyName>analysis</FriendlyName>
+  </ProjectTarget>
+  <Reports>
+    <Report>
+      <Filename>C:\Users\John\AppData\Local\Temp\analysis1_20181121.vsp</Filename>
+    </Report>
+  </Reports>
+</ProfilingTarget>

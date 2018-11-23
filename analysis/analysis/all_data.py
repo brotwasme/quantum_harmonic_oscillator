@@ -27,25 +27,21 @@ def error(x, Ex):
 
 def corralation_mct(fs, gs):
     N = len(gs)
-    Gdt = np.zeros(N)
+    Gdt = np.zeros(1)
     Egi = np.mean(gs)
     Efit = np.mean(fs)
-    Gdt[0] = np.mean(np.multiply(np.subtract(gs,Egi),np.subtract(fs, Efit)))/(N-1)
+    not_sumed = np.multiply(np.subtract(gs,Egi),np.subtract(fs, Efit))
+    mean = np.sum(not_sumed)/(N-1)
+    Gdt[0] = mean
     for i in range(1,len(gs)-1):
         Egi = np.mean(gs[:(N-i+1)])
         Efit = np.mean(fs[(N-i):])
-        Gdt[i] = np.mean(np.multiply(np.subtract(gs,Egi)[:-i],np.subtract(fs, Efit)[i:]))/(N-i-1)
-    return Gdt
-
-def int_corralation_mct(fs, gs): #not needed
-    N = len(gs)
-    Gdt = np.zeros(N)
-    Egi = np.mean(gs)
-    Efj = np.mean(fs)
-    Gdt += np.mean(np.multiply(np.subtract(gs,Egi),np.subtract(fs, Egj)))/(N-1)
-    for i in range(1,N):
-        for j in range(1,N):
-            Gdt += np.mean(np.multiply(np.subtract(gs,Egi)[:-i],np.subtract(fs, Efj)[j:]))/(N-i-1)
+        not_sumed = np.multiply(np.subtract(gs,Egi)[:-i],np.subtract(fs, Efit)[i:])
+        mean = np.sum(not_sumed)/(N-i-1)
+        if mean > 0:
+            Gdt = np.append(Gdt, mean)
+        else:
+            break
     return Gdt
 
 def interg(acr):
@@ -54,9 +50,10 @@ def interg(acr):
     sum = 0.5
     int_acr[0] = 0.5
     for i in range(1, N):
-        sum += (N-i)*acr[i]/(N*acr[0])
+        sum += acr[i]/(N*acr[0]) #(N-i)
         int_acr[i] = sum
-    return int_acr
+    return int_acr, sum
+
 
 
 def corralation_tau(fs, gs):
@@ -64,27 +61,34 @@ def corralation_tau(fs, gs):
     Gdt = np.zeros(1)
     err = np.zeros(1)
     gf = np.multiply(gs,fs).flatten()
-    Gdt[0] = np.mean(gf);
-    #err[0] = jack(gf, B)
+    mean = np.mean(gf)
+    Gdt[0] = mean
+    std, naive = error(gf, mean)
+    err[0] = std/np.log(200)
     for i in range(1, len(gs[0])):
         fs = np.roll(fs, 1, 1)
-        gf = np.multiply(gs,fs).flatten()
+        gfs = np.multiply(gs,fs)
+        gf = gfs.flatten()
         mean = np.mean(gf)
         if mean > 0:
             Gdt = np.append(Gdt, mean)
-            #err = np.append(err, jack(gf, B))
+            G = np.mean(gfs, 1)
+            intg, sum = interg(G)
+            std, niave = error(G, mean)
+            print(std, sum, len(G), std*sum)
+            err = np.append(err, np.sqrt(np.abs(std*sum/len(G))))
         else:
             break
             print(mean)
-    print(len(Gdt))
-    print(len(err))
+    print("Gdt: ",len(Gdt))
+    print("err: ",len(err))
     return Gdt, err
 
 
 def eff_mass(gdt):
-    gdtn = np.roll(gdt, 1)
-    gdtp = np.roll(gdt, -1)
-    return 0.5*np.log(gdtn/gdtp)
+    gdtp = np.roll(gdt, 1)
+    gdtn = np.roll(gdt, -1)
+    return -0.5*np.log(gdtn/gdtp)
 
 def av(xs, mean_x2):
     avr = np.divide(xs, mean_x2)
@@ -163,16 +167,17 @@ def ploter(data, title, lables, type, N_previous=0, x=[], yerr=[]):
         #print(data[i])
         print(len(data[i]), len(x), len(yerr))
         if type[i] == 1:
-            plt.plot(data[i], "ro")
+            plt.plot(data[i], "-")
         elif type[i] == 2:
             plt.acorr(data[i])
         elif type[i] == 3:
-            plt.semilogy(data[i], 'ro')
+            plt.semilogy(data[i], '-')
         elif (type[i] == 4 and len(x) == len(data[i]) and len(yerr) == len(data[i])):
             print(x,yerr)
             if (not len(x)==len(data[i])) and (not len(yerr)==len(data[i])):
                 x = np.zeros(len(data[i]))
                 yerr = np.zeros(len(data[i]))
+            plt.yscale("log")
             plt.errorbar(x, data[i], yerr)
     return 1+N_previous
 
@@ -198,10 +203,6 @@ def xn_func(file=False):
     mean_x, mean_x2, mean_x3, mean_x4 = xns_means(xs, x2s, x3s, x4s, vars)
     #corrl = corralation(data, data)
     m = vars[3]
-    title1 = [["1", "2"], ["3", "4"]]
-    print(title1)
-    print(title1[0][1]) #2
-    print(title1[1][1]) #4
     labels = [["x^"+str(i+1), "markov time", "x^"+str(i+1)] for i in range(4)] #title, xlabel, ylabel
     suptitle = "configurations of <x^n> vs monte carlo time"
     print(labels)
@@ -212,7 +213,7 @@ def xn_func(file=False):
     labels = [["autocorralation of x^"+str(i+1), "d(markov time)", "corralation of x^"+str(i+1)] for i in range(4)] #title, xlabel, ylabel
     n = acorr_ploter(data, suptitle, labels, n)
 
-    cor1 = corralation_mct(xs,xs)[:100]
+    cor1 = corralation_mct(xs,xs)[:110]
     cor2 = av(cor1, cor1[0])
     cor3 = np.correlate(xs,xs,mode='full')[len(xs)-1:len(xs)-1+100]
     cor4 = np.divide(cor3, cor3[0])
@@ -223,7 +224,7 @@ def xn_func(file=False):
              "autocorralation of x,"+l+"normalised"]
              for l in labs] #title, xlabel, ylabel
     n = ploter([cor1, cor2, cor3, cor4], suptitle, labels, [1, 1, 1, 1], n)
-    int_cor = interg(cor1)
+    int_cor, sum = interg(cor1)
     n = ploter([int_cor], "intergrated coralation",[["intergrated coralation", "monte carlo time", "intergrated corralation"]], [1], n )
 
 
@@ -242,14 +243,9 @@ def data_func(file=False):
         n=1
     elif not true:
         data = np.reshape(data1d, (int(vars[1]), int(vars[0])))
-        #print(data)
-        #print(len(data))
-        #print(len(data[0]))
-        #print(len(data[0,:]))
-        #print(data[0][0])
-        #print(data[0][1])
         print(vars)
-        cor, err = corralation_tau(data[:1000], data[:1000])
+        print(len(data[0]))
+        cor, err = corralation_tau(data, data)
         #print(len(cor))
         suptitle = "corralation vs imagenary time"
         labels = [["corralation vs d imagenary time",
@@ -270,8 +266,10 @@ def data_func(file=False):
                        for data_l in data], 0)
         cor2 = cor2/ cor2[0]
         #print(len(cor2))
-        mass = eff_mass(cor1)
-        n = ploter([cor, cor1, cor1, mass, cor2], suptitle, labels, [3,1,3,1,1], n, np.linspace(0, len(cor), len(cor-1)), err)
+        print(err)
+        mass = eff_mass(cor)
+        n = ploter([cor, cor1, cor1, mass[1:], cor2], suptitle, labels, [4,1,3,1,1], n, np.linspace(0, len(cor), len(cor-1)), err)
+        n = ploter([mass[1:]], "effective mass vs dtau", [["", "dtau", "effective mass"]], [1], n)
         pass
 
 
@@ -284,9 +282,11 @@ def play():
     print(arr[:,-1])
     print(arr[0,:])
     arr = np.roll(arr, 1, 1)
-    mean = np.mean(arr)
+    mean = np.mean(arr, 0)
+    mean2 = np.mean(arr, 1)
     print(arr)
     print(mean)
+    print(mean2)
 
 
 def testing():
