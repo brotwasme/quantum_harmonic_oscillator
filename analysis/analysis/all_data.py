@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import gaussian_kde
+from scipy.optimize import curve_fit
 
 def flucuations(fs, mean_f):
     return (np.sum((fs - mean_f)**2)**(0.5))/np.abs(mean_f)
@@ -36,7 +37,7 @@ def corralation_mct(fs, gs):
     for i in range(1,len(gs)-1):
         Egi = np.mean(gs[:(N-i+1)])
         Efit = np.mean(fs[(N-i):])
-        not_sumed = np.multiply(np.subtract(gs,Egi)[:-i],np.subtract(fs, Efit)[i:])
+        not_sumed = np.divide(np.multiply(np.subtract(gs,Egi)[:-i],np.subtract(fs, Efit)[i:]),Gdt[0])
         mean = np.sum(not_sumed)/(N-i-1)
         if mean > 0:
             Gdt = np.append(Gdt, mean)
@@ -44,8 +45,39 @@ def corralation_mct(fs, gs):
             break
     return Gdt
 
+def error_of_corl(std, intg_time, N):
+    error = std*np.sqrt(2*intg_time/N)
+    return error
+
+def function(x, a, b, c, d):
+    return a*np.exp(-b*x)+c*np.exp(-d*x)
+
+def fit(xs, ys, n):
+    popt, pcov = curve_fit(function, xs, ys)
+    a, b, c, d = popt[0], popt[1], popt[2], popt[3]
+    residuals = ys - function(xs,a,b,c,d)
+    fres = np.sum(np.power(residuals, 2)/ function(xs,a,b,c,d))
+    print("sum( res^2/predicted): ",fres,", a: ", a,", b: ", b,", c: ", c,", d: ", d)
+    curve = function(xs, a,b,c,d)
+    ploter([curve, ys], "plot of expontntial, autocorralation vs monte carlo time", 
+           [["fitted", "monte carlo time", "auto corralation function"],
+            ["simulated", "monte carlo time", "auto corralation function"]],[6, 1],n)
+    pass
+
+def mean_error(x, mean = 0):
+    #print(len(x))
+    #x = [i for i in x if i>0]
+    #print(len(x))
+    if not mean:
+        mean = np.mean(x)
+    std, naive = error(x, mean)
+    corr = corralation_mct(x,x)
+    int_acr, sum = interg(corr)
+    err = error_of_corl(std, sum, len(x))
+    return mean, err
+
 def interg(acr):
-    N = len(acr)
+    N = int(len(acr))
     int_acr = np.zeros(N)
     sum = 0.5
     int_acr[0] = 0.5
@@ -54,41 +86,86 @@ def interg(acr):
         int_acr[i] = sum
     return int_acr, sum
 
-
-
 def corralation_tau(fs, gs):
-    B = 5
+    n = len(fs)
+    Gdti = np.zeros((1, n))
     Gdt = np.zeros(1)
-    err = np.zeros(1)
-    gf = np.multiply(gs,fs).flatten()
+    errs = np.zeros(1)
+    means = np.zeros(1)
+    gf = np.multiply(gs,fs)
+    #print(Gdti)
+    Gdti[0] = np.mean(gf, 1)
+    #print(Gdti)
+    #print("gtdi",len(Gdti[0]))
     mean = np.mean(gf)
     Gdt[0] = mean
-    std, naive = error(gf, mean)
-    err[0] = std/np.log(200)
+    mean, err = mean_error([x for x in Gdti[0] if x>0])
+    errs[0] = err
+    means[0] = mean
     for i in range(1, len(gs[0])):
         fs = np.roll(fs, 1, 1)
-        gfs = np.multiply(gs,fs)
-        gf = gfs.flatten()
+        gf = np.multiply(gs,fs)
         mean = np.mean(gf)
         if mean > 0:
             Gdt = np.append(Gdt, mean)
-            G = np.mean(gfs, 1)
-            intg, sum = interg(G)
-            std, niave = error(G, mean)
-            print(std, sum, len(G), std*sum)
-            err = np.append(err, np.sqrt(np.abs(std*sum/len(G))))
+            Gdti = np.append(Gdti, [np.mean(gf, 1)], 0)
+            #print(i, Gdti)
+            mean, err = mean_error([x for x in Gdti[i] if x>0])
+            errs = np.append(errs, err)
+            means = np.append(means, mean)
         else:
             break
-            print(mean)
-    print("Gdt: ",len(Gdt))
-    print("err: ",len(err))
-    return Gdt, err
+            #print(mean)
+    #print("Gdt: ",len(Gdt))
+    #print("err: ",len(err))
+    return Gdt, errs, means, Gdti
 
 
-def eff_mass(gdt):
+def eff_mass_mean(gdt):
+    #gdt = [i for i in gdt if i>0]
     gdtp = np.roll(gdt, 1)
     gdtn = np.roll(gdt, -1)
-    return -0.5*np.log(gdtn/gdtp)
+    return -0.5*np.log(gdtn/gdtp)[1:-1]
+
+def eff_mass(gdt_i, means = []):
+    f = "nope"
+    p = np.zeros(0)
+    eff_mass_i = np.zeros(0)
+    eff_mass_i_i = np.zeros((0,len(gdt_i)-2))
+    eff_mass_mean = np.zeros(0)
+    eff_mass_err = np.zeros(0)#
+    print("start lens", len(gdt_i),len(gdt_i[0]))
+    for j in range(len(gdt_i[0])):
+        p = np.append(p, 0)
+        eff_mass_i = np.zeros(0)
+        for i in range(1,len(gdt_i)-1):
+            if gdt_i[i-1, j]*gdt_i[i+1, j] > 0:
+                eff_mass_i =np.append(eff_mass_i, 0.5*np.log(gdt_i[i-1, j]/gdt_i[i+1, j]))
+            else:
+                #print("break")
+                break
+        #print("check", eff_mass_i, eff_mass_i.size)
+        if eff_mass_i.size==len(gdt_i)-2:
+            #print(1)
+            #print(len(eff_mass_i_i),len([eff_mass_i]))
+            eff_mass_i_i = np.append(eff_mass_i_i, [eff_mass_i], 0)
+    print(len(eff_mass_i_i),len(eff_mass_i_i[0]))
+    if len(means):
+        #print(":1")
+        mean = means
+    else:
+        #print(":2")
+        means = np.zeros(len(eff_mass_i_i[0]))
+    for i in range(len(eff_mass_i_i[0])):
+        #print(i)
+        mean, err = mean_error(eff_mass_i_i[:,i], means[i])
+        eff_mass_mean = np.append(eff_mass_mean, mean)
+        eff_mass_err = np.append(eff_mass_err, err)
+    #print("p",p, np.max(p))
+    #print("a by b",eff_mass_i_i.size)
+    #print(eff_mass_mean,eff_mass_err)
+    print(eff_mass_mean.size, eff_mass_err.size)
+    return eff_mass_mean, eff_mass_err
 
 def av(xs, mean_x2):
     avr = np.divide(xs, mean_x2)
@@ -150,6 +227,10 @@ def prob_dens_plot(data):
     density = gaussian_kde(data1d)
     xs_all = np.linspace(-10, 10, 1000)
     plt.plot(xs_all, density(xs_all))
+    plt.xlabel("x")
+    plt.ylabel("pd(x)")
+    plt.grid(True)
+    plt.title
 
 def ploter(data, title, lables, type, N_previous=0, x=[], yerr=[]):
     N = 1
@@ -163,9 +244,10 @@ def ploter(data, title, lables, type, N_previous=0, x=[], yerr=[]):
         plt.xlabel(lables[i][1])
         plt.ylabel(lables[i][2])
         plt.grid(True)
-        #print(x,yerr)
+        #print("x",x,"yerr",yerr)
         #print(data[i])
-        print(len(data[i]), len(x), len(yerr))
+        #print(len(yerr))
+        #print(len(data[i]), len(x), len(yerr))
         if type[i] == 1:
             plt.plot(data[i], "-")
         elif type[i] == 2:
@@ -173,12 +255,21 @@ def ploter(data, title, lables, type, N_previous=0, x=[], yerr=[]):
         elif type[i] == 3:
             plt.semilogy(data[i], '-')
         elif (type[i] == 4 and len(x) == len(data[i]) and len(yerr) == len(data[i])):
-            print(x,yerr)
+            #print(x,yerr)
             if (not len(x)==len(data[i])) and (not len(yerr)==len(data[i])):
                 x = np.zeros(len(data[i]))
                 yerr = np.zeros(len(data[i]))
             plt.yscale("log")
             plt.errorbar(x, data[i], yerr)
+        elif (type[i] == 5 and len(x) == len(data[i]) and len(yerr) == len(data[i])):
+            #print(x,yerr)
+            if (not len(x)==len(data[i])) and (not len(yerr)==len(data[i])):
+                x = np.zeros(len(data[i]))
+                yerr = np.zeros(len(data[i]))
+            plt.errorbar(x, data[i], yerr)
+        elif (type[i]==6):
+            plt.scatter(np.linspace(0, len(data[i+1]), len(data[i+1])), data[i+1])
+            plt.plot(data[i])
     return 1+N_previous
 
 def acorr_ploter(data, title, lables, N_previous=0):
@@ -199,6 +290,10 @@ def xn_func(file=False):
     print(file)
     vars, data = data_in(file, 5)
     xs, x2s, x3s, x4s = get_xns(data, vars)
+    xs = xs[100:]
+    x2s = x2s[100:]
+    x3s = x3s[100:]
+    x4s = x4s[100:]
     print(vars)
     mean_x, mean_x2, mean_x3, mean_x4 = xns_means(xs, x2s, x3s, x4s, vars)
     #corrl = corralation(data, data)
@@ -213,8 +308,10 @@ def xn_func(file=False):
     labels = [["autocorralation of x^"+str(i+1), "d(markov time)", "corralation of x^"+str(i+1)] for i in range(4)] #title, xlabel, ylabel
     n = acorr_ploter(data, suptitle, labels, n)
 
-    cor1 = corralation_mct(xs,xs)[:110]
+    cor1 = corralation_mct(xs,xs)[1:110]
     cor2 = av(cor1, cor1[0])
+    fit(np.linspace(0, cor2.size, cor2.size), cor1, n)
+    n += 1
     cor3 = np.correlate(xs,xs,mode='full')[len(xs)-1:len(xs)-1+100]
     cor4 = np.divide(cor3, cor3[0])
     suptitle = "autocorralation of x^n non np output"
@@ -240,36 +337,59 @@ def data_func(file=False):
     if true:
         plt.figure(1)
         prob_dens_plot(data1d)
-        n=1
-    elif not true:
-        data = np.reshape(data1d, (int(vars[1]), int(vars[0])))
+        n+=1
+    if not true:
+        data = np.reshape(data1d, (int(vars[1]), int(vars[0])))[100:]
         print(vars)
-        print(len(data[0]))
-        cor, err = corralation_tau(data, data)
+        #print(len(data[0]))
+        cor, errs, means, cor_i = corralation_tau(data, data)
         #print(len(cor))
-        suptitle = "corralation vs imagenary time"
-        labels = [["corralation vs d imagenary time",
-                  "d imagenary time", "coralation"],
-                  ["corralation vs d imagenary time",
-                  "imagenary time", "coralation+abs(min(corralation))"],
-                  ["corralation vs d imagenary time",
-                  "d imagenary time", "ln( coralation+abs(min(corralation)) )"],
-                  ["effective mass from coralation+abs(min(corralation)) vs imagenary time",
-                  "d imagenary time", "effective mass from coralation+abs(min(corralation))"],
-                  ["effective mass from coralation2 vs d imagenary time",
-                  "d imagenary time", "effective mass from coralation+abs(min(corralation))"]] #title, xlabel, ylabel
-        min = 0 #np.abs(np.min(cor))
-        #print(min)
+        if True:
+            suptitle = "corralation vs imagenary time"
+            labels = [["corralation vs d imagenary time",
+                      "d imagenary time", "coralation"],
+                      ["corralation vs d imagenary time",
+                      "imagenary time", "coralation+abs(min(corralation))"],
+                      ["corralation vs d imagenary time",
+                      "d imagenary time", "ln( coralation+abs(min(corralation)) )"],
+                      ["effective mass from coralation+abs(min(corralation)) vs imagenary time",
+                      "d imagenary time", "effective mass from coralation+abs(min(corralation))"],
+                      ["effective mass from coralation2 vs d imagenary time",
+                      "d imagenary time", "effective mass from coralation+abs(min(corralation))"]] #title, xlabel, ylabel
+            min = 0 #np.abs(np.min(cor))
+            #print(min)
 
-        cor1 = cor/cor[0]
-        cor2 = np.mean([ np.correlate(data_l, data_l, mode='full')[len(data_l)-1:]
-                       for data_l in data], 0)
-        cor2 = cor2/ cor2[0]
-        #print(len(cor2))
-        print(err)
-        mass = eff_mass(cor)
-        n = ploter([cor, cor1, cor1, mass[1:], cor2], suptitle, labels, [4,1,3,1,1], n, np.linspace(0, len(cor), len(cor-1)), err)
-        n = ploter([mass[1:]], "effective mass vs dtau", [["", "dtau", "effective mass"]], [1], n)
+            cor1 = cor/cor[0]
+            cor2 = np.mean([ np.correlate(data_l, data_l, mode='full')[len(data_l)-1:]
+                           for data_l in data], 0)
+            cor2 = cor2/ cor2[0]
+            #print(len(cor2))
+            #print(err)
+            #print(len(cor_i))
+            #print(cor_i)
+            #mass_i = [eff_mass(i) for i in cor_i]
+            mass = eff_mass_mean(cor)
+            mass_mean1, mass_err1 = eff_mass(cor_i)
+            mass_mean2, mass_err2 = eff_mass(cor_i, mass)
+            print(len(mass_mean1), len(mass_err1),len(mass_mean2), len(mass_err2))
+            #print("hhhhhhheeeeeeeeeeeeeeeerrrrrrrrrrrreeeeeeeeeeeeee",len(mass_i),len(mass_i[0]))
+            #size = len(mass)
+            #print("here")
+            #mean_mass = eff_mass(cor)
+           # print("okay so far")
+           # mass_i_mean = np.zeros(size)
+           # mass_i_err = np.zeros(size)
+           # for i in range(size):
+           #     mean_mass_i, err_mass_i = mean_error(mass_i[i])
+           #     mass_i_mean[i] = mean_mass_i
+           #     mass_i_err[i] = err_mass_i
+            #print("mas  and len og mass ", mass, mean_mass, len(mass))
+            #print(mass)
+            n = ploter([cor, cor1, cor1, mass[:], cor2], suptitle, labels, [4,1,3,1,1], n, np.linspace(0, len(cor), len(cor)), errs)
+            n = ploter([cor], suptitle, labels, [4], n, np.linspace(0, len(cor), len(cor)), errs)
+            #n = ploter([mean_mass[1:]], "effective mass vs dtau", [["", "dtau", "effective mass"]], [5], n, np.linspace(0, len(mass), len(mass))[1:], mass_i_err[1:])
+            n = ploter([mass_mean1[:], mass], "effective mass vs dtau", [["", "dtau", "effective mass"],["", "dtau", "effective mass"]], [5, 5], n, np.linspace(0, len(mass_mean1), len(mass_mean1))[:], mass_err1[:])
+            n = ploter([mass_mean2[:]], "effective mass vs dtau", [["", "dtau", "effective mass"]], [5], n, np.linspace(0, len(mass_mean2), len(mass_mean2))[:], mass_err2[:])
         pass
 
 
@@ -287,6 +407,10 @@ def play():
     print(arr)
     print(mean)
     print(mean2)
+    mean1 = np.append(mean, mean, 0)
+    mean2 = np.append([mean], [mean], 0)
+    print(mean1, mean2)
+    print(mean2 + mean)
 
 
 def testing():
