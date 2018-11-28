@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import gaussian_kde
 from scipy.optimize import curve_fit
+#from matplotlib import rc
 
 def flucuations(fs, mean_f):
     return (np.sum((fs - mean_f)**2)**(0.5))/np.abs(mean_f)
@@ -35,8 +36,8 @@ def corralation_mct(fs, gs):
     mean = np.sum(not_sumed)/(N-1)
     Gdt[0] = mean
     for i in range(1,len(gs)-1):
-        Egi = np.mean(gs[:(N-i+1)])
-        Efit = np.mean(fs[(N-i):])
+        Egi = np.sum(gs[:(N-i+1)])/(N-i)
+        Efit = np.sum(fs[(N-i):])/(N-i-1)
         not_sumed = np.divide(np.multiply(np.subtract(gs,Egi)[:-i],np.subtract(fs, Efit)[i:]),Gdt[0])
         mean = np.sum(not_sumed)/(N-i-1)
         if mean > 0:
@@ -60,9 +61,9 @@ def fit(xs, ys, n):
     print("sum( res^2/predicted): ",fres,", a: ", a,", b: ", b,", c: ", c,", d: ", d)
     curve = function(xs, a,b,c,d)
     ploter([curve, ys], "plot of expontntial, autocorralation vs monte carlo time", 
-           [["fitted", "monte carlo time", "auto corralation function"],
+           [[r"auto corralation function of x vs $\Delta t_{MC}$", r"$\Delta t_{MC}$", "auto corralation function of x"],
             ["simulated", "monte carlo time", "auto corralation function"]],[6, 1],n)
-    pass
+
 
 def mean_error(x, mean = 0):
     #print(len(x))
@@ -86,13 +87,13 @@ def interg(acr):
         int_acr[i] = sum
     return int_acr, sum
 
-def corralation_tau(fs, gs):
+def corralation_tau(fs, gs, power=1):
     n = len(fs)
     Gdti = np.zeros((1, n))
     Gdt = np.zeros(1)
     errs = np.zeros(1)
     means = np.zeros(1)
-    gf = np.multiply(gs,fs)
+    gf = np.power(np.multiply(gs,fs),power)
     #print(Gdti)
     Gdti[0] = np.mean(gf, 1)
     #print(Gdti)
@@ -104,7 +105,7 @@ def corralation_tau(fs, gs):
     means[0] = mean
     for i in range(1, len(gs[0])):
         fs = np.roll(fs, 1, 1)
-        gf = np.multiply(gs,fs)
+        gf = np.power(np.multiply(gs,fs), power)
         mean = np.mean(gf)
         if mean > 0:
             Gdt = np.append(Gdt, mean)
@@ -149,7 +150,7 @@ def eff_mass(gdt_i, means = []):
             #print(1)
             #print(len(eff_mass_i_i),len([eff_mass_i]))
             eff_mass_i_i = np.append(eff_mass_i_i, [eff_mass_i], 0)
-    print(len(eff_mass_i_i),len(eff_mass_i_i[0]))
+    print("end:", len(eff_mass_i_i),len(eff_mass_i_i[0]))
     if len(means):
         #print(":1")
         mean = means
@@ -157,18 +158,17 @@ def eff_mass(gdt_i, means = []):
         #print(":2")
         means = np.zeros(len(eff_mass_i_i[0]))
     for i in range(len(eff_mass_i_i[0])):
-        #print(i)
         mean, err = mean_error(eff_mass_i_i[:,i], means[i])
         eff_mass_mean = np.append(eff_mass_mean, mean)
         eff_mass_err = np.append(eff_mass_err, err)
     #print("p",p, np.max(p))
     #print("a by b",eff_mass_i_i.size)
     #print(eff_mass_mean,eff_mass_err)
-    print(eff_mass_mean.size, eff_mass_err.size)
+    #print(eff_mass_mean.size, eff_mass_err.size)
     return eff_mass_mean, eff_mass_err
 
 def av(xs, mean_x2):
-    avr = np.divide(xs, mean_x2)
+    avr = xs/mean_x2 #np.divide(xs, mean_x2)
     return avr
 
 def data_in(file, N_var):
@@ -230,24 +230,21 @@ def prob_dens_plot(data):
     plt.xlabel("x")
     plt.ylabel("pd(x)")
     plt.grid(True)
-    plt.title
+    plt.title("probability density of x vs x")
 
 def ploter(data, title, lables, type, N_previous=0, x=[], yerr=[]):
     N = 1
     if not (len(data[0]) == 1):
         N = len(data)
-    plt.figure(1+N_previous)
+    #plt.figure(1+N_previous)
     for i in range(N):
-        plt.suptitle(title)
-        plt.subplot(N,1,i+1)
+        plt.figure(1+N_previous+i)
+        #plt.suptitle(title)
+        #plt.subplot(N,1,i+1)
         plt.title(lables[i][0])
         plt.xlabel(lables[i][1])
         plt.ylabel(lables[i][2])
         plt.grid(True)
-        #print("x",x,"yerr",yerr)
-        #print(data[i])
-        #print(len(yerr))
-        #print(len(data[i]), len(x), len(yerr))
         if type[i] == 1:
             plt.plot(data[i], "-")
         elif type[i] == 2:
@@ -260,17 +257,16 @@ def ploter(data, title, lables, type, N_previous=0, x=[], yerr=[]):
                 x = np.zeros(len(data[i]))
                 yerr = np.zeros(len(data[i]))
             plt.yscale("log")
-            plt.errorbar(x, data[i], yerr)
+            plt.errorbar(x, data[i], yerr, capsize=2, elinewidth=1, markeredgewidth=1)
         elif (type[i] == 5 and len(x) == len(data[i]) and len(yerr) == len(data[i])):
-            #print(x,yerr)
             if (not len(x)==len(data[i])) and (not len(yerr)==len(data[i])):
                 x = np.zeros(len(data[i]))
                 yerr = np.zeros(len(data[i]))
-            plt.errorbar(x, data[i], yerr)
+            plt.errorbar(x, data[i], yerr, capsize=2, elinewidth=1, markeredgewidth=1)
         elif (type[i]==6):
-            plt.scatter(np.linspace(0, len(data[i+1]), len(data[i+1])), data[i+1])
+            plt.scatter(np.linspace(0, len(data[i+1]), len(data[i+1])), data[i+1], marker="+")
             plt.plot(data[i])
-    return 1+N_previous
+    return 1+N_previous+i
 
 def acorr_ploter(data, title, lables, N_previous=0):
     N = len(data)
@@ -290,39 +286,40 @@ def xn_func(file=False):
     print(file)
     vars, data = data_in(file, 5)
     xs, x2s, x3s, x4s = get_xns(data, vars)
-    xs = xs[100:]
-    x2s = x2s[100:]
-    x3s = x3s[100:]
-    x4s = x4s[100:]
+    xs = xs#[100:]
+    x2s = x2s#[100:]
+    x3s = x3s#[100:]
+    x4s = x4s#[100:]
     print(vars)
     mean_x, mean_x2, mean_x3, mean_x4 = xns_means(xs, x2s, x3s, x4s, vars)
     #corrl = corralation(data, data)
     m = vars[3]
-    labels = [["x^"+str(i+1), "markov time", "x^"+str(i+1)] for i in range(4)] #title, xlabel, ylabel
-    suptitle = "configurations of <x^n> vs monte carlo time"
+    labels = [["configurations of <x^"+str(i+1)+r"> vs $t_{MC}$", r"$t_{MC}$", "<x^"+str(i+1)+">"] for i in range(4)] #title, xlabel, ylabel
+    suptitle = "configurations of <x^n> vs $t_{MC}$"
     print(labels)
     data = [xs,x2s,x3s,x4s]
     n = ploter(data, suptitle, labels, [1,1,1,1])
 
     suptitle = "autocorralation of x^n, np output"
-    labels = [["autocorralation of x^"+str(i+1), "d(markov time)", "corralation of x^"+str(i+1)] for i in range(4)] #title, xlabel, ylabel
+    labels = [["autocorralation of x^"+str(i+1), r"$\Delta t_{MC}$", "corralation of x^"+str(i+1)] for i in range(4)] #title, xlabel, ylabel
     n = acorr_ploter(data, suptitle, labels, n)
 
     cor1 = corralation_mct(xs,xs)[1:110]
     cor2 = av(cor1, cor1[0])
-    fit(np.linspace(0, cor2.size, cor2.size), cor1, n)
+    #print("IMPORTANT: ",cor2[0])
+    fit(np.linspace(0, cor2.size, cor2.size), cor2, n)
     n += 1
     cor3 = np.correlate(xs,xs,mode='full')[len(xs)-1:len(xs)-1+100]
     cor4 = np.divide(cor3, cor3[0])
     suptitle = "autocorralation of x^n non np output"
     labs = [" not "," ", " not ", " "]
     labels = [["autocorralation of x,"+l+"normalised",
-              "d(markov time)",
+              "$\Delta t_{MC}$",
              "autocorralation of x,"+l+"normalised"]
              for l in labs] #title, xlabel, ylabel
     n = ploter([cor1, cor2, cor3, cor4], suptitle, labels, [1, 1, 1, 1], n)
     int_cor, sum = interg(cor1)
-    n = ploter([int_cor], "intergrated coralation",[["intergrated coralation", "monte carlo time", "intergrated corralation"]], [1], n )
+    n = ploter([int_cor*2], "intergrated coralation",[[r"intergrated coralation vs $\Delta t_{MC}$", r"$\Delta t_{MC}$", "intergrated corralation"]], [1], n )
 
 
 def data_func(file=False):
@@ -340,14 +337,15 @@ def data_func(file=False):
         n+=1
     if not true:
         data = np.reshape(data1d, (int(vars[1]), int(vars[0])))[100:]
+        #data1 = np.reshape(data1d, (int(vars[1]), int(vars[0])))
         print(vars)
         #print(len(data[0]))
         cor, errs, means, cor_i = corralation_tau(data, data)
         #print(len(cor))
         if True:
             suptitle = "corralation vs imagenary time"
-            labels = [["corralation vs d imagenary time",
-                      "d imagenary time", "coralation"],
+            labels = [[r"corralation of x vs $\Delta \tau$",
+                      r"$\Delta \tau$", "coralation of x"],
                       ["corralation vs d imagenary time",
                       "imagenary time", "coralation+abs(min(corralation))"],
                       ["corralation vs d imagenary time",
@@ -367,29 +365,22 @@ def data_func(file=False):
             #print(err)
             #print(len(cor_i))
             #print(cor_i)
-            #mass_i = [eff_mass(i) for i in cor_i]
             mass = eff_mass_mean(cor)
             mass_mean1, mass_err1 = eff_mass(cor_i)
             mass_mean2, mass_err2 = eff_mass(cor_i, mass)
-            print(len(mass_mean1), len(mass_err1),len(mass_mean2), len(mass_err2))
-            #print("hhhhhhheeeeeeeeeeeeeeeerrrrrrrrrrrreeeeeeeeeeeeee",len(mass_i),len(mass_i[0]))
-            #size = len(mass)
-            #print("here")
-            #mean_mass = eff_mass(cor)
-           # print("okay so far")
-           # mass_i_mean = np.zeros(size)
-           # mass_i_err = np.zeros(size)
-           # for i in range(size):
-           #     mean_mass_i, err_mass_i = mean_error(mass_i[i])
-           #     mass_i_mean[i] = mean_mass_i
-           #     mass_i_err[i] = err_mass_i
-            #print("mas  and len og mass ", mass, mean_mass, len(mass))
-            #print(mass)
-            n = ploter([cor, cor1, cor1, mass[:], cor2], suptitle, labels, [4,1,3,1,1], n, np.linspace(0, len(cor), len(cor)), errs)
-            n = ploter([cor], suptitle, labels, [4], n, np.linspace(0, len(cor), len(cor)), errs)
+            #print(len(mass_mean1), len(mass_err1),len(mass_mean2), len(mass_err2))
+            print("corralation at dt = 0", cor[0], means[0], ", ", errs[0])
+            print("mass at dt = 0", mass_mean2[0], mass[0], ", ", mass_err2[0])
+            n = ploter([cor, cor1, cor1, mass[:], cor2], suptitle, labels, [5,1,3,1,1], n, np.linspace(0, len(cor)-1, len(cor)), errs)
+            n = ploter([cor], suptitle, labels, [4], n, np.linspace(0, len(cor)-1, len(cor)), errs)
             #n = ploter([mean_mass[1:]], "effective mass vs dtau", [["", "dtau", "effective mass"]], [5], n, np.linspace(0, len(mass), len(mass))[1:], mass_i_err[1:])
-            n = ploter([mass_mean1[:], mass], "effective mass vs dtau", [["", "dtau", "effective mass"],["", "dtau", "effective mass"]], [5, 5], n, np.linspace(0, len(mass_mean1), len(mass_mean1))[:], mass_err1[:])
-            n = ploter([mass_mean2[:]], "effective mass vs dtau", [["", "dtau", "effective mass"]], [5], n, np.linspace(0, len(mass_mean2), len(mass_mean2))[:], mass_err2[:])
+            n = ploter([mass_mean1[:], mass],
+                      "effective mass vs d"+r"$\tau$",
+                     [["", r"$\Delta \tau$", "effective mass"],
+                      ["", "d"+r"$\tau$", "effective mass"]],
+                     [5, 5], n, np.linspace(0, len(mass_mean1)-1,
+                     len(mass_mean1))[:], mass_err1[:])
+            n = ploter([mass_mean2[:]], r"effective mass vs $\Delta \tau$", [[r"effective mass vs $\Delta \tau$", r"$\Delta \tau$", "effective mass"]], [5], n, np.linspace(0, len(mass_mean2)-1, len(mass_mean2))[:], mass_err2[:])
         pass
 
 
@@ -427,8 +418,40 @@ def testing():
     print(data)
 
 def main():
-    #xn_func("xn_1.txt")
-    data_func("data_1.txt")
+    if True:
+        xn_func("xn_0200.txt")
+        for i in range(4):
+            plt.figure(i+1)
+            plt.legend([r'$\tilde m = 0.6$, $0$ drops per config, $N_\tau=200$'])
+        plt.figure(6)
+        plt.legend(["multi exp. fit of "+r'$\tilde m = 0.6$, $0$ drops per config, $N_\tau=200$',
+                    r'$\tilde m = 0.6$, $0$ drops per config, $N_\tau=200$'])
+        plt.figure(11)
+        plt.legend([r'$\tilde m = 0.6$, $0$ drops per config, $N_\tau=200$'])
+    #data_func("data_1.txt")
+    if False:
+        data_func("data_0400.txt")
+        data_func("data_0200.txt")
+        data_func("data_20400.txt")
+        data_func("data_20200.txt")
+        plt.figure(6)
+        plt.legend([r'$\tilde m = 0.3$, $0$ drops per config, $N_\tau=400$',
+                    r'$\tilde m = 0.6$, $0$ drops per config, $N_\tau=200$',
+                    r'$\tilde m = 0.3$, $20$ drops per config, $N_\tau=400$',
+                    r'$\tilde m = 0.6$, $20$ drops per config, $N_\tau=200$'])
+        plt.figure(9)
+        plt.legend([r'$\tilde m = 0.3$, $0$ drops per config, $N_\tau=400$',
+                    r'$\tilde m = 0.6$, $0$ drops per config, $N_\tau=200$',
+                    r'$\tilde m = 0.3$, $20$ drops per config, $N_\tau=400$',
+                    r'$\tilde m = 0.6$, $20$ drops per config, $N_\tau=200$'])
+    if False:
+        data_func("data_0200.txt")
+        plt.figure(1)
+        plt.legend([r'$\tilde m = 0.6$, $0$ drops per config, $N_\tau=200$'])
+        plt.figure(6)
+        plt.legend([r'$\tilde m = 0.6$, $0$ drops per config, $N_\tau=200$'])
+        plt.figure(9)
+        plt.legend([r'$\tilde m = 0.6$, $0$ drops per config, $N_\tau=200$'])
     #play()
     plt.show()
      

@@ -65,13 +65,13 @@ int main()
 	if (true)
 	{
 		menipulator men;
-		double mw = 0.6;
+		double mw = 0.3;
 		double acpt = 0.6;
 		int Nconfigs = 10000;
-		int drop = 1;
-		const int len = 200;
-		std::string file_name_x = "xn_1.txt";
-		std::string file_name_d = "data_1.txt";
+		int drop = 20;
+		const int len = 400;
+		std::string file_name_x = "xn_20400.txt";
+		std::string file_name_d = "data_20400.txt";
 		std::vector<double> path(len, 0);
 		path = men.full(len, file_name_d, file_name_x, drop, Nconfigs, mw, acpt);
 		//path = men.full(len, file_name_x, drop, Nconfigs, mw, acpt);
