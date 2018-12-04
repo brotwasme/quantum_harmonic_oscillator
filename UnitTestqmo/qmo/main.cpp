@@ -14,19 +14,20 @@ void p_v(std::vector<double> v)
 }
 int main()
 {
-	if (false)
+	if (true)
 	{
-		double mw = 0.2;
-		int size = 600;
-		int drop = 100;
+		double mw = 0.3;
+		int size = 5000;
+		int drop = 10;
 		double rate = 0.5;
-		const int len = 500;
+		const int len = 400;
 		std::vector<double> xs(len, 0);
 		std::vector<double> x2s(len, 0);
 
 		std::vector<double> path(size);
 		menipulator men;
 		men.rn_set();
+		men.lamda(1);
 		path = men.begining(path, mw);
 		double x22s;
 		path = men.loop(path, 1);
@@ -62,16 +63,16 @@ int main()
 		double mean_x2 = men.Ex(x2s);
 		printf("mean: %f, mean sqr: %f", mean_x, mean_x2);
 	}
-	if (true)
+	if (false)
 	{
 		menipulator men;
-		double mw = 0.3;
-		double acpt = 0.6;
+		double mw = 0.5;
+		double acpt = 0.5;
 		int Nconfigs = 10000;
-		int drop = 20;
-		const int len = 400;
-		std::string file_name_x = "xn_20400.txt";
-		std::string file_name_d = "data_20400.txt";
+		int drop = 0;
+		const int len = 240;
+		std::string file_name_x = "xn_0240.txt";
+		std::string file_name_d = "data_0240.txt";
 		std::vector<double> path(len, 0);
 		path = men.full(len, file_name_d, file_name_x, drop, Nconfigs, mw, acpt);
 		//path = men.full(len, file_name_x, drop, Nconfigs, mw, acpt);

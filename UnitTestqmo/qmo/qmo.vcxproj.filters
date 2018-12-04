@@ -18,24 +18,12 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="calc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="menip.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="play.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="calc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="menip.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="play.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

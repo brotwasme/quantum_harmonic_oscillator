@@ -72,10 +72,19 @@ double menipulator::ds(double x_m, double x_p, double x_o, double x_n)
 	return ds;
 }
 
+double menipulator::ds_anhar(double x_min, double x_plu, double x_old, double x_new)
+{
+	double s_o = pow(x_plu - x_old, 2) + pow(x_old - x_min, 2) + pow(_w*x_old, 2) - pow(_w*_lambda, 2);
+	double s_n = pow(x_plu - x_new, 2) + pow(x_new - x_min, 2) + pow(_w*x_new, 2) - pow(_w*_lambda, 2);
+	//printf("o: %f, n: %f", s_o*_m/2, s_n*_m/2);
+	double ds = 0.5*_m*(s_n - s_o);
+	return ds;
+}
+
 double menipulator::ds_comp(double x_min, double x_plu, double x_old, double x_new)
 {
-	double s_o = pow(x_plu - x_old,2) + pow(x_old - x_min,2)+ pow(_w*x_old, 2);
-	double s_n = pow(x_plu - x_new, 2) + pow(x_new - x_min,2)+pow(_w*x_new, 2);
+	double s_o = pow(x_plu - x_old, 2) + pow(x_old - x_min, 2) + pow(_w*x_old, 2);
+	double s_n = pow(x_plu - x_new, 2) + pow(x_new - x_min, 2) + pow(_w*x_new, 2);
 	//printf("o: %f, n: %f", s_o*_m/2, s_n*_m/2);
 	double ds = 0.5*_m*(s_n - s_o);
 	return ds;
@@ -275,6 +284,60 @@ double menipulator::jack_knife_var(std::vector<double> estim, int B, int N, doub
 	return var;
 }
 
+double menipulator::lamda(double lambda)
+{
+	_lambda = lambda;
+	return lambda;
+}
+
+std::vector<double> menipulator::loopanhar(std::vector<double> path, int n_times)
+{
+	double rnd_n;
+	int t;
+	int t_min;
+	int t_plu;
+	double x_old;
+	double x_min;
+	double x_plu;
+	double x_new;
+	double ds_;
+	_N = path.size();
+	for (int j = 0; j < n_times; j++)
+	{
+		_accrate = 0;
+		for (int i = 0; i < _N; i++)
+		{
+			rnd_n = rnd();
+			t = next(rnd_n);
+			//printf("%f", rnd_n);
+			//printf("%d", t);
+			t_min = (t + _N - 1) % _N;
+			t_plu = (t + 1) % _N;
+			rnd_n = rnd();
+			//printf("%f", rnd_n);
+			x_old = path[t];
+			x_new = x_evol(x_old, rnd_n);
+			x_min = path[t_min];
+			x_plu = path[t_plu];
+			ds_ = ds_anhar(x_min, x_plu, x_old, x_new);
+			rnd_n = rnd();
+			bool keep_x = metropolis(ds_, rnd_n);
+			//printf("%f: %d\n", ds_, keep_x);
+			_no_chance_accepted += 1;
+			//printf("%f\n", rnd_n);
+			//printf("h:%f - x new:%f -accrate:%f - keep x:%d\n", _h, x_new, _accrate, keep_x);
+			if (!keep_x)
+			{
+				path[t] = x_new; // <- change here
+				accrate();
+				accepted();
+			}
+		}
+		//printf("%f", _accrate);
+		h_evol();
+	}
+	return path;
+}
 std::vector<double> menipulator::loop(std::vector<double> path, int n_times)
 {
 	double rnd_n;

@@ -12,6 +12,7 @@ public:
 	std::vector<double> begining(std::vector<double>,double mw);
 	std::vector<double> corralation(std::vector<double> corrl, std::vector<double>path);
 	double ds(double x_min, double x_plu, double x_old, double x_new);
+	double ds_anhar(double x_min, double x_plu, double x_old, double x_new);
 	double ds_comp(double x_min, double x_plu, double x_old, double x_new);
 	double Ex(std::vector<double> path);
 	double Ex(std::vector<double> path, int pow);
@@ -30,6 +31,8 @@ public:
 	std::vector<double> jack_knife_edit(std::vector<double> path, int B);
 	std::vector<double> jack_knife_estim(std::vector<double> path, int B, double sum);
 	double jack_knife_var(std::vector<double> path, int B, int N, double mean);
+	double lamda(double lambda);
+	std::vector<double> loopanhar(std::vector<double> path, int n_times);
 	std::vector<double> loop(std::vector<double> path, int n_times);
 	void meta();
 	bool metropolis(double ds, double rnd);
@@ -60,6 +63,7 @@ private:
 	double _accrate;
 	double _acpt_rt;
 	double _h;
+	double _lambda;
 	double _m;
 	int _N;
 	double _w;
